@@ -17,7 +17,9 @@
 package io.curity.identityserver.plugin.alarmhandler;
 
 import se.curity.identityserver.sdk.alarm.AlarmHandler;
+import se.curity.identityserver.sdk.plugin.ManagedObject;
 import se.curity.identityserver.sdk.plugin.descriptor.AlarmHandlerPluginDescriptor;
+import java.util.Optional;
 
 /*
  * Describe our custom alarm handler plugin
@@ -34,7 +36,7 @@ public final class EventsBridgeAlarmHandlerPluginDescriptor
     }
 
     /*
-     * Get a unique string to describe the plugin
+     * Get a unique string, which also names the plugin in the Admin UI
      */
     @Override
     public String getPluginImplementationType() {
@@ -42,10 +44,20 @@ public final class EventsBridgeAlarmHandlerPluginDescriptor
     }
 
     /*
-     * Indicate the configuration used
+     * Indicate the configuration class used
      */
     @Override
     public Class<? extends EventsBridgeAlarmConfiguration> getConfigurationType() {
         return EventsBridgeAlarmConfiguration.class;
+    }
+
+    /*
+     * The managed object is created on first use or when the alarm handler configuration is updated
+     */
+    @Override
+    public Optional<? extends ManagedObject<EventsBridgeAlarmConfiguration>> createManagedObject(
+            EventsBridgeAlarmConfiguration configuration) {
+
+        return Optional.of(new EventsBridgeManagedClient(configuration));
     }
 }
