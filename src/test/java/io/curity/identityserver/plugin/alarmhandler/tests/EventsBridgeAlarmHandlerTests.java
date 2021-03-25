@@ -5,9 +5,6 @@ import io.curity.identityserver.plugin.alarmhandler.EventsBridgeAlarmHandler;
 import io.curity.identityserver.plugin.alarmhandler.EventsBridgeManagedClient;
 import org.junit.jupiter.api.Test;
 import se.curity.identityserver.sdk.alarm.AlarmSeverity;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class EventsBridgeAlarmHandlerTests {
 
@@ -18,6 +15,7 @@ public class EventsBridgeAlarmHandlerTests {
     public void EventsBridgeAlarmHandler_RaiseTestAlarm_SuccessfullyUploads() {
 
         EventsBridgeManagedClient client = new EventsBridgeManagedClient(new TestAlarmConfiguration());
+        client.initialize();
 
         TestAlarm alarm = new TestAlarm(
                 new TestAlarmIdentifier(),

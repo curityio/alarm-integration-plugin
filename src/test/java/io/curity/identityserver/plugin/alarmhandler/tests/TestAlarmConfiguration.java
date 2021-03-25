@@ -42,4 +42,9 @@ public final class TestAlarmConfiguration implements EventsBridgeAlarmConfigurat
     public String getDataSourceName() {
         return "curity.identityserver";
     }
+
+    @Override
+    public AWSAccessMethod getEventsBridgeAccessMethod() {
+        return null;
+    }
 }

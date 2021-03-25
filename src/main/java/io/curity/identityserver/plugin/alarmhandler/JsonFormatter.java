@@ -40,9 +40,6 @@ public final class JsonFormatter {
         this._mapper = new ObjectMapper();
     }
 
-    /*
-     * Write data to a structure that AWS will consume
-     */
     public String alarmToJson(final Alarm alarm, final boolean verbose) {
 
         if (verbose) {
