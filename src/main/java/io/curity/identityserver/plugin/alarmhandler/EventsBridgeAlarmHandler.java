@@ -42,14 +42,22 @@ public final class EventsBridgeAlarmHandler implements AlarmHandler {
         String json = new JsonFormatter().alarmToJson(alarm, false);
         this._logger.debug(json);
 
-        PutEventsResponse result = this._eventsBridgeClient.raiseAlarmEvent(json);
+        try {
+            PutEventsResponse result = this._eventsBridgeClient.raiseAlarmEvent(json);
 
-        for (PutEventsResultEntry resultEntry : result.entries()) {
-            if (resultEntry.eventId() != null) {
-                this._logger.info("AWS alarm event sent successfully: " + resultEntry.eventId());
-            } else {
-                this._logger.info("AWS alarm event failed to send: " + resultEntry.errorCode());
+            for (PutEventsResultEntry resultEntry : result.entries()) {
+                if (resultEntry.eventId() != null) {
+                    this._logger.info("AWS alarm event sent successfully: " + resultEntry.eventId());
+                } else {
+                    this._logger.info("AWS alarm event failed to send: " + resultEntry.errorCode());
+                }
             }
+
+        } catch (Exception e) {
+
+            // TODO: If we cannot connect then attribute the problem to the external system
+            // throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+            throw new RuntimeException(e);
         }
     }
 }
