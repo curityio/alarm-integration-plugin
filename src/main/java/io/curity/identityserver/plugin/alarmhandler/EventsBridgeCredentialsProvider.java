@@ -1,20 +1,37 @@
 package io.curity.identityserver.plugin.alarmhandler;
 
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 public class EventsBridgeCredentialsProvider {
+
+    private final EventsBridgeAlarmConfiguration _configuration;
+    private final Logger _logger;
+
+    public EventsBridgeCredentialsProvider(EventsBridgeAlarmConfiguration configuration) {
+        this._configuration = configuration;
+        this._logger = LoggerFactory.getLogger(EventsBridgeCredentialsProvider.class);
+    }
 
     /*
      * Deal with the different ways of supplying AWS credentials
      */
-    public static AwsCredentialsProvider get(EventsBridgeAlarmConfiguration.AWSAccessMethod accessMethod) {
+    public AwsCredentialsProvider get() {
 
         AwsCredentialsProvider creds = null;
+        EventsBridgeAlarmConfiguration.AWSAccessMethod accessMethod = this._configuration.getEventsBridgeAccessMethod();
 
         // Use Instance Profile from IAM Role applied to EC2 instance
         Optional<Boolean> isEC2InstanceProfile = accessMethod.isEC2InstanceProfile();
@@ -34,7 +51,7 @@ public class EventsBridgeCredentialsProvider {
             // If roleARN is present, get temporary credentials through AssumeRole
             Optional<String> roleARN = key.getAwsRoleARN();
             if (roleARN.isPresent()) {
-                // creds = getNewCredentialsFromAssumeRole(creds, roleARN.get());
+                creds = getNewCredentialsFromAssumeRole(creds, roleARN.get());
             }
         }
 
@@ -50,7 +67,7 @@ public class EventsBridgeCredentialsProvider {
             // If roleARN is present, get temporary credentials through AssumeRole
             Optional<String> roleARN = profile.getAwsRoleARN();
             if (roleARN.isPresent()) {
-                // creds = getNewCredentialsFromAssumeRole(creds, roleARN.get());
+                creds = getNewCredentialsFromAssumeRole(creds, roleARN.get());
             }
         }
 
@@ -58,10 +75,12 @@ public class EventsBridgeCredentialsProvider {
     }
 
     /*
+     * Create temporary credentials for an assumed role
+     */
     private AwsCredentialsProvider getNewCredentialsFromAssumeRole(AwsCredentialsProvider creds, String roleARN)
     {
         StsClient stsClient = StsClient.builder()
-                .region(_awsRegion)
+                .region(Region.of(this._configuration.getRegionName()))
                 .credentialsProvider(creds)
                 .build();
 
@@ -71,31 +90,24 @@ public class EventsBridgeCredentialsProvider {
                 .roleSessionName("curity-alarm-handler-session")
                 .build();
 
-        try
+        this._logger.info("AssumeRole Request for Events Bridge Alarm Handler");
+        AssumeRoleResponse assumeRoleResult = stsClient.assumeRole(assumeRoleRequest);
+        if (!assumeRoleResult.sdkHttpResponse().isSuccessful())
         {
-            AssumeRoleResponse assumeRoleResult = stsClient.assumeRole(assumeRoleRequest);
-
-            if (!assumeRoleResult.sdkHttpResponse().isSuccessful())
-            {
-                _logger.warn("AssumeRole Request sent but was not successful: {}",
-                        assumeRoleResult.sdkHttpResponse().statusText().get() );
-                return creds; //Returning the original credentials
-            }
-            else
-            {
-                Credentials credentials = assumeRoleResult.credentials();
-
-                AwsSessionCredentials asc = AwsSessionCredentials.create(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken());
-
-                _logger.debug("AssumeRole Request successful: {}", assumeRoleResult.sdkHttpResponse().statusText());
-
-                return StaticCredentialsProvider.create(asc); //returning temp credentials from the assumed role
-            }
+            this._logger.warn("AssumeRole Request sent but was not successful: {}",
+                    assumeRoleResult.sdkHttpResponse().statusText().get() );
+            return creds;
         }
-        catch (Exception e)
+        else
         {
-            _logger.debug("AssumeRole Request failed: {}", e.getMessage());
-            throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+            Credentials credentials = assumeRoleResult.credentials();
+            AwsSessionCredentials asc = AwsSessionCredentials.create(
+                    credentials.accessKeyId(),
+                    credentials.secretAccessKey(),
+                    credentials.sessionToken());
+
+            _logger.info("AssumeRole Request successful: {}", assumeRoleResult.sdkHttpResponse().statusText());
+            return StaticCredentialsProvider.create(asc);
         }
-    }*/
+    }
 }

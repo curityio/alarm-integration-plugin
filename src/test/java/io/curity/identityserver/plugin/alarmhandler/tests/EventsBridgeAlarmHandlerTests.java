@@ -14,20 +14,20 @@ public class EventsBridgeAlarmHandlerTests {
     @Test
     public void EventsBridgeAlarmHandler_RaiseTestAlarm_SuccessfullyUploads() {
 
-        EventsBridgeManagedClient client = new EventsBridgeManagedClient(new TestAlarmConfiguration());
-        client.initialize();
+        TestAlarmConfiguration configuration = new TestAlarmConfiguration();
+        try (EventsBridgeManagedClient client = new EventsBridgeManagedClient(configuration)) {
 
-        TestAlarm alarm = new TestAlarm(
-                new TestAlarmIdentifier(),
-                Instant.now(),
-                AlarmSeverity.MAJOR,
-                false,
-                new TestAlarmDescription(),
-                true);
+            client.initialize();
+            TestAlarm alarm = new TestAlarm(
+                    new TestAlarmIdentifier(),
+                    Instant.now(),
+                    AlarmSeverity.MAJOR,
+                    false,
+                    new TestAlarmDescription(),
+                    true);
 
-        EventsBridgeAlarmHandler handler = new EventsBridgeAlarmHandler(client);
-        handler.handle(alarm);
-
-        client.close();
+            EventsBridgeAlarmHandler handler = new EventsBridgeAlarmHandler(configuration, client);
+            handler.handle(alarm);
+        }
     }
 }

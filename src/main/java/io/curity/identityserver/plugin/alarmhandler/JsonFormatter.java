@@ -40,16 +40,7 @@ public final class JsonFormatter {
         this._mapper = new ObjectMapper();
     }
 
-    public String alarmToJson(final Alarm alarm, final boolean verbose) {
-
-        if (verbose) {
-            return this.outputVerbose(alarm);
-        } else {
-            return this.outputConcise(alarm);
-        }
-    }
-
-    private String outputConcise(final Alarm alarm) {
+    public String getConciseAlarmPayload(final Alarm alarm) {
 
         ObjectNode root = this._mapper.createObjectNode();
         AlarmIdentifier identifier = alarm.getAlarmIdentifier();
@@ -78,7 +69,7 @@ public final class JsonFormatter {
         return root.toPrettyString();
     }
 
-    private String outputVerbose(final Alarm alarm) {
+    public String getVerboseAlarmPayload(final Alarm alarm) {
 
         ObjectNode root = this._mapper.createObjectNode();
 

@@ -16,48 +16,59 @@
 
 package io.curity.identityserver.plugin.alarmhandler;
 
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.curity.identityserver.sdk.alarm.Alarm;
 import se.curity.identityserver.sdk.alarm.AlarmHandler;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 /*
- * A handler that sends alarm data to the AWS Events Bridge using the AWS Java SDK
+ * The entry point alarm handler class produces JSON A handler that sends alarm data to the AWS Events Bridge using the AWS Java SDK
  */
 public final class EventsBridgeAlarmHandler implements AlarmHandler {
 
-    private final EventsBridgeManagedClient _eventsBridgeClient;;
+    private final EventsBridgeAlarmConfiguration _configuration;
+    private final EventsBridgeManagedClient _eventsBridgeClient;
     private final Logger _logger;
 
-    public EventsBridgeAlarmHandler(final EventsBridgeManagedClient client) {
+    public EventsBridgeAlarmHandler(
+            final EventsBridgeAlarmConfiguration configuration,
+            final EventsBridgeManagedClient client) {
+
+        this._configuration = configuration;
         this._eventsBridgeClient = client;
         this._logger = LoggerFactory.getLogger(EventsBridgeAlarmHandler.class);
     }
 
     public void handle(final Alarm alarm) {
 
-        this._logger.info("AWS alarm event triggered");
-        String json = new JsonFormatter().alarmToJson(alarm, false);
+        String json = new JsonFormatter().getConciseAlarmPayload(alarm);
         this._logger.debug(json);
 
-        try {
-            PutEventsResponse result = this._eventsBridgeClient.raiseAlarmEvent(json);
+        PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
+                .eventBusName(this._configuration.getEventBusName())
+                .source(this._configuration.getDataSourceName())
+                .detailType("alarm")
+                .detail(json)
+                .time(Instant.now())
+                .build();
 
-            for (PutEventsResultEntry resultEntry : result.entries()) {
-                if (resultEntry.eventId() != null) {
-                    this._logger.info("AWS alarm event sent successfully: " + resultEntry.eventId());
-                } else {
-                    this._logger.info("AWS alarm event failed to send: " + resultEntry.errorCode());
-                }
+        PutEventsRequest eventsRequest = PutEventsRequest.builder()
+                .entries(entry)
+                .build();
+
+        PutEventsResponse result = this._eventsBridgeClient.notify(eventsRequest);
+
+        for (PutEventsResultEntry resultEntry : result.entries()) {
+            if (resultEntry.eventId() != null) {
+                this._logger.info("Alarm sent successfully to AWS Events Bridge: {}", resultEntry.eventId());
+            } else {
+                this._logger.info("Alarm failed to send to AWS Events Bridge: {}", resultEntry.errorCode());
             }
-
-        } catch (Exception e) {
-
-            // TODO: If we cannot connect then attribute the problem to the external system
-            // throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
-            throw new RuntimeException(e);
         }
     }
 }

@@ -16,13 +16,11 @@
 
 package io.curity.identityserver.plugin.alarmhandler;
 
-import java.time.Instant;
 import se.curity.identityserver.sdk.plugin.ManagedObject;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClientBuilder;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 /*
@@ -31,48 +29,29 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
  */
 public class EventsBridgeManagedClient extends ManagedObject<EventsBridgeAlarmConfiguration> {
 
-    EventsBridgeAlarmConfiguration _configuration;
-    EventBridgeClient _innerClient;
+    private final EventsBridgeAlarmConfiguration _configuration;
+    private EventBridgeClient _innerClient;
 
     public EventsBridgeManagedClient(EventsBridgeAlarmConfiguration configuration) {
         super(configuration);
         this._configuration = configuration;
     }
 
-    /*
-     * Create the client once and handle AWS credential variations
-     */
     public void initialize() {
 
         Region region = Region.of(this._configuration.getRegionName());
         EventBridgeClientBuilder builder = EventBridgeClient.builder()
                 .region(region);
 
-        EventsBridgeAlarmConfiguration.AWSAccessMethod accessMethod = this._configuration.getEventsBridgeAccessMethod();
-        if (accessMethod != null) {
-            EventsBridgeCredentialsProvider.get(this._configuration.getEventsBridgeAccessMethod());
-            builder.credentialsProvider(
-                    EventsBridgeCredentialsProvider.get(this._configuration.getEventsBridgeAccessMethod()));
+        if (this._configuration.getEventsBridgeAccessMethod() != null) {
+            builder.credentialsProvider(new EventsBridgeCredentialsProvider(this._configuration).get());
         }
 
         this._innerClient = builder.build();
     }
 
-    public PutEventsResponse raiseAlarmEvent(String json) {
-
-        PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
-                .eventBusName(this._configuration.getEventBusName())
-                .source(this._configuration.getDataSourceName())
-                .detailType("alarm")
-                .detail(json)
-                .time(Instant.now())
-                .build();
-
-        PutEventsRequest eventsRequest = PutEventsRequest.builder()
-                .entries(entry)
-                .build();
-
-        return this._innerClient.putEvents(eventsRequest);
+    public PutEventsResponse notify(PutEventsRequest request) {
+        return this._innerClient.putEvents(request);
     }
 
     public void close() {
