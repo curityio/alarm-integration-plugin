@@ -16,7 +16,7 @@ public final class TestAlarmDescription implements AlarmDescription {
 
     @Override
     public String getDashboardLink() {
-        return "http://localhost:6749/admin/#/alarm?resource=%2Fbase%3Aenvironments%2Fenvironment%2Fservices%2Fruntime-service%5Bid%3D%271THAkvyM%27%5D%2F..%2F..%2F..%2F..%2Fbase%3Afacilities%2Fhttp%2Fclient%5Bid%3D%27custom-api-client%27%5D&alarm-type-id=alde%3Afailed-connection&alarm-type-qualifier=http%3A%2F%2Flocalhostxxx%3A8002";
+        return "http://localhost:6749/admin/#/alarm?resource=%2Fbase%3Aenvironments%2Fenvironment%2Fservices%2Fruntime-service%5Bid%3D%271THAkvyM%27%5D%2F..%2F..%2F..%2F..%2Fbase%3Afacilities%2Fhttp%2Fclient%5Bid%3D%27custom-claims-api-client%27%5D&alarm-type-id=alde%3Afailed-connection&alarm-type-qualifier=http%3A%2F%2Flocalhostxxx%3A8002";
     }
 
     @Override

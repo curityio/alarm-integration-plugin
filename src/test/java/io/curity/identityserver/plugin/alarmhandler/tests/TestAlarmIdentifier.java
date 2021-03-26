@@ -11,7 +11,7 @@ public final class TestAlarmIdentifier implements AlarmIdentifier {
 
     @Override
     public AlarmingResource getResource() {
-        return null;
+        return new TestAlarmingResource();
     }
 
     @Override
@@ -21,11 +21,11 @@ public final class TestAlarmIdentifier implements AlarmIdentifier {
 
     @Override
     public String getQualifier() {
-        return null;
+        return "https://api.mycompany.com/myapi";
     }
 
     @Override
     public String asUniqueString() {
-        return "/base:environments/environment/services/runtime-service[id='1THAkvyM']/../../../../base:facilities/http/client[id='custom-api-client']";
+        return "/base:environments/environment/services/runtime-service[id='1THAkvyM']/../../../../base:facilities/http/client[id='custom-claims-api-client']";
     }
 }
