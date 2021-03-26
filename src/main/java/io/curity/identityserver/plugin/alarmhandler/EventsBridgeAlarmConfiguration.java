@@ -16,7 +16,10 @@
 
 package io.curity.identityserver.plugin.alarmhandler;
 
+import java.util.Optional;
 import se.curity.identityserver.sdk.config.Configuration;
+import se.curity.identityserver.sdk.config.OneOf;
+import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
 import se.curity.identityserver.sdk.config.annotation.DefaultString;
 import se.curity.identityserver.sdk.config.annotation.Description;
 
@@ -36,4 +39,35 @@ public interface EventsBridgeAlarmConfiguration extends Configuration {
     @Description("The AWS event rule's pattern will use this value")
     @DefaultString("curity.identityserver")
     String getDataSourceName();
+
+    @Description("Choose how to access AWS Events Bridge")
+    AWSAccessMethod getEventsBridgeAccessMethod();
+
+    interface AWSAccessMethod extends OneOf
+    {
+        Optional<AccessKeyIdAndSecret> getAccessKeyIdAndSecret();
+        Optional<AWSProfile> getAWSProfile();
+
+        interface AccessKeyIdAndSecret
+        {
+            Optional<String> getAccessKeyId();
+
+            Optional<String> getAccessKeySecret();
+
+            @Description("Optional role ARN used when requesting temporary credentials, ex. arn:aws:iam::123456789012:role/events-bridge-role")
+            Optional<String> getAwsRoleARN();
+        }
+
+        interface AWSProfile
+        {
+            @Description("AWS Profile name. Retrieves credentials from the system (~/.aws/credentials)")
+            Optional<String> getAwsProfileName();
+
+            @Description("Optional role ARN used when requesting temporary credentials, ex. arn:aws:iam::123456789012:role/events-bridge-role")
+            Optional<String> getAwsRoleARN();
+        }
+
+        @Description("EC2 instance that the Curity Identity Server is running on has been assigned an IAM Role with permissions to Events Bridge.")
+        Optional<@DefaultBoolean(false) Boolean> isEC2InstanceProfile();
+    }
 }

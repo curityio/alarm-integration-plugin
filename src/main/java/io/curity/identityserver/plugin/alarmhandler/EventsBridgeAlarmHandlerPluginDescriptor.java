@@ -58,6 +58,8 @@ public final class EventsBridgeAlarmHandlerPluginDescriptor
     public Optional<? extends ManagedObject<EventsBridgeAlarmConfiguration>> createManagedObject(
             EventsBridgeAlarmConfiguration configuration) {
 
-        return Optional.of(new EventsBridgeManagedClient(configuration));
+        EventsBridgeManagedClient client = new EventsBridgeManagedClient(configuration);
+        client.initialize();
+        return Optional.of(client);
     }
 }
