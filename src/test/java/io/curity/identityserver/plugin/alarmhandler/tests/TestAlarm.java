@@ -25,41 +25,41 @@ public final class TestAlarm implements Alarm {
                      final AlarmDescription description,
                      final boolean isSelfTest) {
 
-        this._alarmIdentifier = alarmIdentifier;
-        this._updated = updated;
-        this._severity = severity;
-        this._cleared = cleared;
-        this._description = description;
-        this._isSelfTest = isSelfTest;
+        _alarmIdentifier = alarmIdentifier;
+        _updated = updated;
+        _severity = severity;
+        _cleared = cleared;
+        _description = description;
+        _isSelfTest = isSelfTest;
     }
 
     @Override
     public AlarmIdentifier getAlarmIdentifier() {
-        return this._alarmIdentifier;
+        return _alarmIdentifier;
     }
 
     @Override
     public Instant getUpdated() {
-        return this._updated;
+        return _updated;
     }
 
     @Override
     public AlarmSeverity getSeverity() {
-        return this._severity;
+        return _severity;
     }
 
     @Override
     public boolean isCleared() {
-        return this._cleared;
+        return _cleared;
     }
 
     @Override
     public boolean isSelfTest() {
-        return this._isSelfTest;
+        return _isSelfTest;
     }
 
     @Override
     public AlarmDescription getDescription() {
-        return this._description;
+        return _description;
     }
 }
