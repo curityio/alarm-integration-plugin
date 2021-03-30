@@ -15,23 +15,23 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
+/*
+ * A helper class to manage the different ways of supplying AWS credentials
+ */
 public class EventsBridgeCredentialsProvider {
 
     private final EventsBridgeAlarmConfiguration _configuration;
     private final Logger _logger;
 
     public EventsBridgeCredentialsProvider(EventsBridgeAlarmConfiguration configuration) {
-        this._configuration = configuration;
-        this._logger = LoggerFactory.getLogger(EventsBridgeCredentialsProvider.class);
+        _configuration = configuration;
+        _logger = LoggerFactory.getLogger(EventsBridgeCredentialsProvider.class);
     }
 
-    /*
-     * Deal with the different ways of supplying AWS credentials
-     */
     public AwsCredentialsProvider get() {
 
         AwsCredentialsProvider creds = null;
-        EventsBridgeAlarmConfiguration.AWSAccessMethod accessMethod = this._configuration.getEventsBridgeAccessMethod();
+        EventsBridgeAlarmConfiguration.AWSAccessMethod accessMethod = _configuration.getEventsBridgeAccessMethod();
 
         // Use Instance Profile from IAM Role applied to EC2 instance
         Optional<Boolean> isEC2InstanceProfile = accessMethod.isEC2InstanceProfile();
@@ -74,13 +74,10 @@ public class EventsBridgeCredentialsProvider {
         return creds;
     }
 
-    /*
-     * Create temporary credentials for an assumed role
-     */
     private AwsCredentialsProvider getNewCredentialsFromAssumeRole(AwsCredentialsProvider creds, String roleARN)
     {
         StsClient stsClient = StsClient.builder()
-                .region(Region.of(this._configuration.getRegionName()))
+                .region(Region.of(_configuration.getRegionName()))
                 .credentialsProvider(creds)
                 .build();
 
@@ -90,11 +87,11 @@ public class EventsBridgeCredentialsProvider {
                 .roleSessionName("curity-alarm-handler-session")
                 .build();
 
-        this._logger.info("AssumeRole Request for Events Bridge Alarm Handler");
+        _logger.info("AssumeRole Request for Events Bridge Alarm Handler");
         AssumeRoleResponse assumeRoleResult = stsClient.assumeRole(assumeRoleRequest);
         if (!assumeRoleResult.sdkHttpResponse().isSuccessful())
         {
-            this._logger.warn("AssumeRole Request sent but was not successful: {}",
+            _logger.warn("AssumeRole Request sent but was not successful: {}",
                     assumeRoleResult.sdkHttpResponse().statusText().get() );
             return creds;
         }

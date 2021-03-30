@@ -33,12 +33,12 @@ public final class JsonFormatter {
     private final ObjectMapper _mapper;
 
     public JsonFormatter() {
-        this._mapper = new ObjectMapper();
+        _mapper = new ObjectMapper();
     }
 
     public String getConciseAlarmPayload(final Alarm alarm) {
 
-        ObjectNode root = this._mapper.createObjectNode();
+        ObjectNode root = _mapper.createObjectNode();
         AlarmIdentifier identifier = alarm.getAlarmIdentifier();
         if (identifier != null) {
 
@@ -52,26 +52,21 @@ public final class JsonFormatter {
                 root.put("qualifier", qualifier);
             }
 
-            AlarmSeverity severity = alarm.getSeverity();
-            if (severity != null) {
-                root.put("severity", severity.name());
-            }
-
-            root.put("updated", alarm.getUpdated().toString());
-
             if (resource != null) {
                 root.put("service", resource.getNodeId());
             }
+        }
 
-            AlarmType type = identifier.getAlarmType();
-            if (type != null) {
-                root.put("type", type.name());
-            }
+        root.put("updated", alarm.getUpdated().toString());
 
-            AlarmDescription description = alarm.getDescription();
-            if (description != null) {
-                root.put("text", description.getBriefDescription());
-            }
+        AlarmSeverity severity = alarm.getSeverity();
+        if (severity != null) {
+            root.put("severity", severity.name());
+        }
+
+        AlarmType type = identifier.getAlarmType();
+        if (type != null) {
+            root.put("type", type.name());
         }
 
         AlarmDescription description = alarm.getDescription();

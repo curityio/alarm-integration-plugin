@@ -34,27 +34,27 @@ public class EventsBridgeManagedClient extends ManagedObject<EventsBridgeAlarmCo
 
     public EventsBridgeManagedClient(EventsBridgeAlarmConfiguration configuration) {
         super(configuration);
-        this._configuration = configuration;
+        _configuration = configuration;
     }
 
     public void initialize() {
 
-        Region region = Region.of(this._configuration.getRegionName());
+        Region region = Region.of(_configuration.getRegionName());
         EventBridgeClientBuilder builder = EventBridgeClient.builder()
                 .region(region);
 
-        if (this._configuration.getEventsBridgeAccessMethod() != null) {
-            builder.credentialsProvider(new EventsBridgeCredentialsProvider(this._configuration).get());
+        if (_configuration.getEventsBridgeAccessMethod() != null) {
+            builder.credentialsProvider(new EventsBridgeCredentialsProvider(_configuration).get());
         }
 
-        this._innerClient = builder.build();
+        _innerClient = builder.build();
     }
 
     public PutEventsResponse notify(PutEventsRequest request) {
-        return this._innerClient.putEvents(request);
+        return _innerClient.putEvents(request);
     }
 
     public void close() {
-        this._innerClient.close();
+        _innerClient.close();
     }
 }

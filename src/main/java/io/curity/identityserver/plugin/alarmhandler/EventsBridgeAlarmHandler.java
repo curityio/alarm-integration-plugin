@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 /*
- * The entry point alarm handler class produces JSON A handler that sends alarm data to the AWS Events Bridge using the AWS Java SDK
+ * A handler that sends alarm data to the AWS Events Bridge using the AWS Java SDK
  */
 public final class EventsBridgeAlarmHandler implements AlarmHandler {
 
@@ -39,19 +39,19 @@ public final class EventsBridgeAlarmHandler implements AlarmHandler {
             final EventsBridgeAlarmConfiguration configuration,
             final EventsBridgeManagedClient client) {
 
-        this._configuration = configuration;
-        this._eventsBridgeClient = client;
-        this._logger = LoggerFactory.getLogger(EventsBridgeAlarmHandler.class);
+        _configuration = configuration;
+        _eventsBridgeClient = client;
+        _logger = LoggerFactory.getLogger(EventsBridgeAlarmHandler.class);
     }
 
     public void handle(final Alarm alarm) {
 
         String json = new JsonFormatter().getConciseAlarmPayload(alarm);
-        this._logger.debug(json);
+        _logger.debug(json);
 
         PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
-                .eventBusName(this._configuration.getEventBusName())
-                .source(this._configuration.getDataSourceName())
+                .eventBusName(_configuration.getEventBusName())
+                .source(_configuration.getDataSourceName())
                 .detailType("alarm")
                 .detail(json)
                 .time(Instant.now())
@@ -61,13 +61,13 @@ public final class EventsBridgeAlarmHandler implements AlarmHandler {
                 .entries(entry)
                 .build();
 
-        PutEventsResponse result = this._eventsBridgeClient.notify(eventsRequest);
+        PutEventsResponse result = _eventsBridgeClient.notify(eventsRequest);
 
         for (PutEventsResultEntry resultEntry : result.entries()) {
             if (resultEntry.eventId() != null) {
-                this._logger.info("Alarm sent successfully to AWS Events Bridge: {}", resultEntry.eventId());
+                _logger.info("Alarm sent successfully to AWS Events Bridge: {}", resultEntry.eventId());
             } else {
-                this._logger.info("Alarm failed to send to AWS Events Bridge: {}", resultEntry.errorCode());
+                _logger.info("Alarm failed to send to AWS Events Bridge: {}", resultEntry.errorCode());
             }
         }
     }
