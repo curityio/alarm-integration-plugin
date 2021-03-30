@@ -14,7 +14,7 @@ public final class TestAlarmConfiguration implements EventsBridgeAlarmConfigurat
 
     @Override
     public String getRegionName() {
-        return "eu-west-2";
+        return "us-east-1";
     }
 
     @Override
