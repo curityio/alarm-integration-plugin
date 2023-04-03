@@ -19,7 +19,6 @@ package io.curity.identityserver.plugin.alarmhandler;
 import java.util.Optional;
 import se.curity.identityserver.sdk.config.Configuration;
 import se.curity.identityserver.sdk.config.OneOf;
-import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
 import se.curity.identityserver.sdk.config.annotation.DefaultString;
 import se.curity.identityserver.sdk.config.annotation.Description;
 
@@ -68,6 +67,6 @@ public interface EventsBridgeAlarmConfiguration extends Configuration {
         }
 
         @Description("EC2 instance that the Curity Identity Server is running on has been assigned an IAM Role with permissions to Events Bridge.")
-        Optional<@DefaultBoolean(false) Boolean> isEC2InstanceProfile();
+        Optional<Boolean> isEC2InstanceProfile();
     }
 }
